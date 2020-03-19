@@ -98,16 +98,17 @@ void RS232::send(unsigned int port_base_io, const char *data)
     }
 }
 
-void RS232::receive(unsigned int port_base_io, char *data)
+unsigned char far *RS232::receive(unsigned int port_base_io)
 {
-    while (true)
+    unsigned char far *data = new unsigned char[2048];
+    unsigned int cnt = 0;
+    while ((inp(port_base_io + LSR) & 0x01) > 0)
     {
-        if ((inp(port_base_io + LSR) & 0x01) > 0)
-        {
-            char c = inp(port_base_io + RBR);
-            *data++ = c;
-            if (c == 0x0)
-                return;
-        }
+        char c = inp(port_base_io + RBR);
+        *data++ = c;
+        cnt++;
+        if (c == 0x0 || cnt >= 2048)
+            break;
     }
+    return data;
 }

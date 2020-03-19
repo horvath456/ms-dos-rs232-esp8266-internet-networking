@@ -6,8 +6,8 @@
 namespace RS232
 {
 void setup(unsigned int port_base_io, unsigned long baud);
-void send(unsigned int port_base_io, const char* data);
-void receive(unsigned int port_base_io, char* data);
-}
+void send(unsigned int port_base_io, const char *data);
+unsigned char far *receive(unsigned int port_base_io);
+} // namespace RS232
 
 #endif

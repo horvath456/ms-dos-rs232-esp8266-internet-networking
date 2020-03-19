@@ -1,3 +1,4 @@
 WATCOM
 BUILD
 *.EXE
+.vscode
