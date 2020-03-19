@@ -1,0 +1,23 @@
+{
+  "name": "tls_server",
+  "version": "1.0.0",
+  "description": "An example TLS server for the msdos-rs232-esp8266-internet-networking project",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/horvath456/ms-dos-rs232-esp8266-internet-networking.git"
+  },
+  "author": "Andreas Horvath",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://gitlab.com/horvath456/ms-dos-rs232-esp8266-internet-networking/issues"
+  },
+  "homepage": "https://gitlab.com/horvath456/ms-dos-rs232-esp8266-internet-networking#readme",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "tls": "0.0.1"
+  }
+}
