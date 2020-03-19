@@ -5,11 +5,13 @@ SET WATCOM=C:\WATCOM
 SET EDPATH=C:\WATCOM\EDDAT
 SET WIPFC=C:\WATCOM\WIPFC
 rescan
-del main.exe
+del esp8266.exe
 mkdir build
 del build\*.*
 cd build
+wpp -4 -fp5 -ml -xs -obehi+l+mrt -zq ..\src\driver.cpp
+wlib driver +driver
 wpp -4 -fp5 -ml -xs -obehi+l+mrt -zq ..\src\main.cpp
 wlink @..\proj.lnk
 cd ..
-copy build\main.exe main.exe
+copy build\esp8266.exe esp8266.exe

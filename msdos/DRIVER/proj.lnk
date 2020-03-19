@@ -1,2 +1,3 @@
-name main.exe 
+name esp8266.exe 
+file driver.lib
 file main.obj

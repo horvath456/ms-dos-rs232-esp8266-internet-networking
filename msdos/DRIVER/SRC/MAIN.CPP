@@ -1,10 +1,11 @@
 #include <stdio>
-#include <conio.h>
 #include <dos.h>
-#include <string>
 #include <iostream>
+
+#include "driver.h"
 
 int main()
 {
+	ESP8266_Driver::init();
 	return 0;
 }
