@@ -1,6 +1,6 @@
 cls
-set path=Z:\;C:\WATCOM\BINW;C:\DOSGAME\INCLUDE
-SET INCLUDE=C:\WATCOM\H;C:\DOSGAME\INCLUDE
+set path=Z:\;C:\WATCOM\BINW;C:\DRIVER\INCLUDE
+SET INCLUDE=C:\WATCOM\H;C:\DRIVER\INCLUDE
 SET WATCOM=C:\WATCOM
 SET EDPATH=C:\WATCOM\EDDAT
 SET WIPFC=C:\WATCOM\WIPFC
@@ -10,7 +10,8 @@ mkdir build
 del build\*.*
 cd build
 wpp -4 -fp5 -ml -xs -obehi+l+mrt -zq ..\src\driver.cpp
-wlib driver +driver
+wpp -4 -fp5 -ml -xs -obehi+l+mrt -zq ..\src\serial.cpp
+wlib driver +driver +serial
 wpp -4 -fp5 -ml -xs -obehi+l+mrt -zq ..\src\main.cpp
 wlink @..\proj.lnk
 cd ..
