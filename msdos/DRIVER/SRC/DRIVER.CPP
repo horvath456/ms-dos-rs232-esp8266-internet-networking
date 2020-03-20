@@ -44,8 +44,8 @@ bool ESP8266_Driver::init()
 
     bool ok = false;
     unsigned char far *data = RS232::receive(io_port);
-    //if (data[0] == 'O' && data[1] == 'K')
-    //    ok = true;
+    if (data[0] == 'O' && data[1] == 'K')
+        ok = true;
 
     delete[] data;
     return ok;
