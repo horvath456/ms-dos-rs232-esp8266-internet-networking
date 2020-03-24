@@ -8,6 +8,7 @@
 namespace RS232
 {
 void setup(unsigned int port_base_io, unsigned long baud);
+bool is_available(unsigned int port_base_io);
 char wait_read(unsigned int port_base_io);
 int read(unsigned int port_base_io);
 void write(unsigned int port_base_io, char a);

@@ -12,6 +12,11 @@ public:
     ESP8266_Driver(unsigned int base_io_port);
     bool test();
     void reset();
+    bool data_available();
+    bool is_connected_to_AP();
+    std::string get_ip();
+    std::string get_mac();
+    AP_List_Entry get_connected_AP();
     std::vector<AP_List_Entry> get_available_APs();
     void connect_to_AP(std::string ssid, std::string password);
     void start_tls_connection(std::string ip, unsigned int port);

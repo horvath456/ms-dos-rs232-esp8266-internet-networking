@@ -46,10 +46,10 @@ void ESP8266_Driver::reset()
 
 vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
 {
-    RS232::write(io_port, "AT+LISTAP\n");
+    RS232::write(io_port, "AT+LIST_AP\n");
     vector<AP_List_Entry> list;
 
-    string data = RS232::read_string_until(io_port, 0x0);
+    string data = ESP8266_Driver::read_string();
     vector<string> lines;
     lines = split(data, '\n');
     for (unsigned int i = 0; i < lines.size(); i++)
@@ -71,7 +71,7 @@ void ESP8266_Driver::start_tls_connection(std::string ip, unsigned int port)
 {
     char *x_str = new char[5];
     x_str = itoa(port, x_str, 10); // base 10
-    string s = "AT+TLSSTART=" + ip + ":" + string(x_str) + "\n";
+    string s = "AT+TLS_START=" + ip + ":" + string(x_str) + "\n";
     RS232::write(io_port, s);
 }
 
@@ -84,6 +84,11 @@ void ESP8266_Driver::send_string(string str)
     RS232::write(io_port, str);
 }
 
+bool ESP8266_Driver::data_available()
+{
+    return RS232::is_available(io_port);
+}
+
 string ESP8266_Driver::read_string()
 {
     return RS232::read_string_until(io_port, 0x0);
@@ -91,5 +96,30 @@ string ESP8266_Driver::read_string()
 
 void ESP8266_Driver::close_tls_connection()
 {
-    RS232::write(io_port, "AT+TLSCLOSE\n");
+    RS232::write(io_port, "AT+TLS_CLOSE\n");
+}
+
+bool ESP8266_Driver::is_connected_to_AP()
+{
+    RS232::write(io_port, "AT+IS_CONNECTED_TO_AP\n");
+    return RS232::read(io_port) == 'Y';
+}
+
+std::string ESP8266_Driver::get_ip()
+{
+    RS232::write(io_port, "AT+GET_IP\n");
+    return ESP8266_Driver::read_string();
+}
+
+std::string ESP8266_Driver::get_mac()
+{
+    RS232::write(io_port, "AT+GET_MAC\n");
+    return ESP8266_Driver::read_string();
+}
+
+AP_List_Entry ESP8266_Driver::get_connected_AP()
+{
+    RS232::write(io_port, "AT+CONNECTED_AP\n");
+    AP_List_Entry ap;
+    return ap;
 }

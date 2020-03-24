@@ -94,6 +94,11 @@ int is_transmit_empty(unsigned int port_base_io)
     return inp(port_base_io + 5) & 0x20;
 }
 
+bool RS232::is_available(unsigned int port_base_io)
+{
+    return (!(serial_received(port_base_io) == 0));
+}
+
 void RS232::setup(unsigned int port_base_io, unsigned long baud)
 {
     outp(port_base_io + LCR, 0x80);
@@ -105,7 +110,7 @@ void RS232::setup(unsigned int port_base_io, unsigned long baud)
 
 char RS232::wait_read(unsigned int port_base_io)
 {
-    while (serial_received(port_base_io) == 0)
+    while (!RS232::is_available(port_base_io))
         ;
 
     return inp(port_base_io);
@@ -113,7 +118,7 @@ char RS232::wait_read(unsigned int port_base_io)
 
 int RS232::read(unsigned int port_base_io)
 {
-    if (serial_received(port_base_io) == 0)
+    if (!RS232::is_available(port_base_io))
     {
         return -1;
     }
