@@ -2,6 +2,7 @@
 
 #include <stdio>
 #include <conio.h>
+#include <string>
 #include <dos.h>
 
 #define LCR 3
@@ -10,6 +11,8 @@
 #define Latch_Low 0x00
 #define THR 0
 #define LSR 5
+
+using namespace std;
 
 char get_divisor_low_byte(unsigned long baud)
 {
@@ -81,6 +84,16 @@ char get_divisor_high_byte(unsigned long baud)
     return 0x0;
 }
 
+int serial_received(unsigned int port_base_io)
+{
+    return inp(port_base_io + 5) & 1;
+}
+
+int is_transmit_empty(unsigned int port_base_io)
+{
+    return inp(port_base_io + 5) & 0x20;
+}
+
 void RS232::setup(unsigned int port_base_io, unsigned long baud)
 {
     outp(port_base_io + LCR, 0x80);
@@ -90,25 +103,88 @@ void RS232::setup(unsigned int port_base_io, unsigned long baud)
     return;
 }
 
-void RS232::send(unsigned int port_base_io, const char *data)
+char RS232::wait_read(unsigned int port_base_io)
 {
-    while (*data != 0)
+    while (serial_received(port_base_io) == 0)
+        ;
+
+    return inp(port_base_io);
+}
+
+int RS232::read(unsigned int port_base_io)
+{
+    if (serial_received(port_base_io) == 0)
     {
-        outp(port_base_io + THR, *data++);
+        return -1;
+    }
+    else
+    {
+        return inp(port_base_io);
     }
 }
 
-unsigned char far *RS232::receive(unsigned int port_base_io)
+void RS232::write(unsigned int port_base_io, char a)
 {
-    unsigned char far *data = new far unsigned char[2048];
-    unsigned int cnt = 0;
-    while ((inp(port_base_io + LSR) & 0x01) > 0)
+    while (is_transmit_empty(port_base_io) == 0)
+        ;
+
+    outp(port_base_io, a);
+}
+
+void RS232::write(unsigned int port_base_io, std::string s)
+{
+    RS232::write(port_base_io, s.c_str());
+}
+
+void RS232::write(unsigned int port_base_io, const char *b)
+{
+    while (true)
     {
-        char c = inp(port_base_io + RBR);
-        *data++ = c;
-        cnt++;
-        if (c == 0x0 || cnt >= 2047)
-            break;
+        char c = *b++;
+        if (c == 0x0)
+            return;
+        RS232::write(port_base_io, c);
     }
-    return data;
+}
+
+void RS232::read_bytes(unsigned int port_base_io, unsigned char far *buffer, size_t length)
+{
+    for (unsigned int i = 0; i < length; i++)
+    {
+        *buffer++ = RS232::wait_read(port_base_io);
+    }
+}
+
+void RS232::read_bytes_until(unsigned int port_base_io, char c, unsigned char far *buffer)
+{
+    while (true)
+    {
+        char ch = RS232::wait_read(port_base_io);
+        *buffer++ = ch;
+        if (ch == c)
+            return;
+    }
+}
+
+string RS232::read_string(unsigned int port_base_io, size_t length)
+{
+    string s = "";
+    for (unsigned int i = 0; i < length; i++)
+    {
+        char c = RS232::wait_read(port_base_io);
+        s = s + c;
+    }
+    return s;
+}
+
+string RS232::read_string_until(unsigned int port_base_io, char c)
+{
+    string s = "";
+    while (true)
+    {
+        char ch = RS232::wait_read(port_base_io);
+        s = s + ch;
+        if (ch == c)
+            return s;
+    }
 }
