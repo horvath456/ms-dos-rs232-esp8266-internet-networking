@@ -35,8 +35,8 @@ ESP8266_Driver::ESP8266_Driver(unsigned int base_io_port)
 
 bool ESP8266_Driver::test()
 {
-    RS232::write(io_port, "AT\n");
-    return RS232::read_string(io_port) == "OK\n";
+    RS232::write(io_port, "AT\r\n");
+    return RS232::read_string(io_port) == "\r\nOK\r\n";
 }
 
 void ESP8266_Driver::reset()

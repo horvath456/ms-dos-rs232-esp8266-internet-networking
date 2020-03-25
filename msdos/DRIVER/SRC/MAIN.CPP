@@ -16,8 +16,8 @@ int main()
 		return 1;
 	}
 
-	esp8266.reset();
-	esp8266.get_available_APs();
+	//esp8266.reset();
+	//esp8266.get_available_APs();
 
 	return 0;
 }
