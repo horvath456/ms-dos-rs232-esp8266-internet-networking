@@ -4,6 +4,8 @@
 #include <conio.h>
 #include <string>
 #include <dos.h>
+#include <time.h>
+#include <iostream>
 
 #define LCR 3
 #define RBR 0
@@ -101,17 +103,26 @@ bool RS232::is_available(unsigned int port_base_io)
 
 void RS232::setup(unsigned int port_base_io, unsigned long baud)
 {
+    outp(port_base_io + 1, 0x00); // Disable all interrupts
+
     outp(port_base_io + LCR, 0x80);
     outp(port_base_io + Latch_High, get_divisor_high_byte(baud));
     outp(port_base_io + Latch_Low, get_divisor_low_byte(baud));
-    outp(port_base_io + LCR, 0x03);
+
+    outp(port_base_io + LCR, 0x03); // 8 bits, no parity, one stop bit
+    outp(port_base_io + 2, 0xC7);   // Enable FIFO, clear them, with 14-byte threshold
+    outp(port_base_io + 4, 0x0B);   // IRQs enabled, RTS/DSR set
     return;
 }
 
-char RS232::wait_read(unsigned int port_base_io)
+int RS232::wait_read(unsigned int port_base_io)
 {
+    clock_t time_start = clock();
     while (!RS232::is_available(port_base_io))
-        ;
+    {
+        if (clock() >= time_start + 1000)
+            return -1;
+    }
 
     return inp(port_base_io);
 }
@@ -156,7 +167,11 @@ void RS232::read_bytes(unsigned int port_base_io, unsigned char far *buffer, siz
 {
     for (unsigned int i = 0; i < length; i++)
     {
-        *buffer++ = RS232::wait_read(port_base_io);
+        int j = RS232::wait_read(port_base_io);
+        if (j == -1)
+            return;
+        char c = (char)j;
+        *buffer++ = c;
     }
 }
 
@@ -164,19 +179,26 @@ void RS232::read_bytes_until(unsigned int port_base_io, char c, unsigned char fa
 {
     while (true)
     {
-        char ch = RS232::wait_read(port_base_io);
+        int j = RS232::wait_read(port_base_io);
+        if (j == -1)
+            return;
+        char ch = (char)j;
         *buffer++ = ch;
         if (ch == c)
             return;
     }
 }
 
-string RS232::read_string(unsigned int port_base_io, size_t length)
+string RS232::read_string(unsigned int port_base_io)
 {
     string s = "";
-    for (unsigned int i = 0; i < length; i++)
+    while (true)
     {
-        char c = RS232::wait_read(port_base_io);
+        int j = RS232::wait_read(port_base_io);
+        if (j == -1)
+            return s;
+        char c = (char)j;
+
         s = s + c;
     }
     return s;
@@ -187,7 +209,11 @@ string RS232::read_string_until(unsigned int port_base_io, char c)
     string s = "";
     while (true)
     {
-        char ch = RS232::wait_read(port_base_io);
+        int j = RS232::wait_read(port_base_io);
+        if (j == -1)
+            return s;
+        char ch = (char)j;
+
         s = s + ch;
         if (ch == c)
             return s;

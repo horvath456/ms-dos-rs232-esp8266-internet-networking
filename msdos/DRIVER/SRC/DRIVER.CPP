@@ -36,7 +36,7 @@ ESP8266_Driver::ESP8266_Driver(unsigned int base_io_port)
 bool ESP8266_Driver::test()
 {
     RS232::write(io_port, "AT\n");
-    return (RS232::read(io_port) == 'O' && RS232::read(io_port) == 'K');
+    return RS232::read_string(io_port) == "OK\n";
 }
 
 void ESP8266_Driver::reset()
@@ -91,7 +91,7 @@ bool ESP8266_Driver::data_available()
 
 string ESP8266_Driver::read_string()
 {
-    return RS232::read_string_until(io_port, 0x0);
+    return RS232::read_string(io_port);
 }
 
 void ESP8266_Driver::close_tls_connection()
@@ -102,7 +102,7 @@ void ESP8266_Driver::close_tls_connection()
 bool ESP8266_Driver::is_connected_to_AP()
 {
     RS232::write(io_port, "AT+IS_CONNECTED_TO_AP\n");
-    return RS232::read(io_port) == 'Y';
+    return RS232::read_string(io_port) == "YES\n";
 }
 
 std::string ESP8266_Driver::get_ip()
