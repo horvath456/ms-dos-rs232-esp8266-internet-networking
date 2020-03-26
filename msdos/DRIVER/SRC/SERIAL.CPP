@@ -16,6 +16,8 @@
 
 using namespace std;
 
+unsigned int timeout = 1000;
+
 char get_divisor_low_byte(unsigned long baud)
 {
     switch (baud)
@@ -120,7 +122,7 @@ int RS232::wait_read(unsigned int port_base_io)
     clock_t time_start = clock();
     while (!RS232::is_available(port_base_io))
     {
-        if (clock() >= time_start + 1000)
+        if (clock() >= time_start + timeout)
             return -1;
     }
 
@@ -218,4 +220,14 @@ string RS232::read_string_until(unsigned int port_base_io, char c)
         if (ch == c)
             return s;
     }
+}
+
+void RS232::set_timeout(unsigned int t)
+{
+    timeout = t;
+}
+
+void RS232::reset_timeout()
+{
+    timeout = 1000;
 }

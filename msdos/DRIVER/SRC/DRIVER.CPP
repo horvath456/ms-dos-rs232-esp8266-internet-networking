@@ -35,8 +35,8 @@ ESP8266_Driver::ESP8266_Driver(unsigned int base_io_port)
 
 bool ESP8266_Driver::test()
 {
-    RS232::write(io_port, "AT\r\n");
-    return RS232::read_string(io_port) == "\r\nOK\r\n";
+    RS232::write(io_port, "AT\n");
+    return RS232::read_string(io_port) == "OK\r\n";
 }
 
 void ESP8266_Driver::reset()
@@ -48,13 +48,15 @@ vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
 {
     RS232::write(io_port, "AT+LIST_AP\n");
     vector<AP_List_Entry> list;
-
-    string data = ESP8266_Driver::read_string();
+    RS232::set_timeout(5000);
+    string data = RS232::read_string(io_port);
+    RS232::reset_timeout();
     vector<string> lines;
     lines = split(data, '\n');
     for (unsigned int i = 0; i < lines.size(); i++)
     {
-        string line = lines[i].substr(1);
+        string line = lines[i];
+        cout << line.c_str() << endl;
         vector<string> tokens = split(line, ',');
     }
 

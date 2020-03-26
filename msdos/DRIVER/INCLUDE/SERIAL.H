@@ -18,6 +18,8 @@ void read_bytes(unsigned int port_base_io, unsigned char far *buffer, size_t len
 void read_bytes_until(unsigned int port_base_io, char c, unsigned char far *buffer);
 std::string read_string(unsigned int port_base_io);
 std::string read_string_until(unsigned int port_base_io, char c);
+void set_timeout(unsigned int t);
+void reset_timeout();
 } // namespace RS232
 
 #endif
