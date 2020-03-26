@@ -43,10 +43,9 @@ void loop() {
     if(s == "AT+LIST_AP") {
       int networksFound = WiFi.scanNetworks();
 
-      Serial.printf("%d network(s) found\n", networksFound);
       for (int i = 0; i < networksFound; i++)
       {
-        Serial.printf("(%d, \"%s\", %d, %d, \"%s\")\n", i + 1, WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE ? "open" : "encrypted");
+        Serial.printf("%d,\"%s\",%d,%d,\"%s\"\n", i + 1, WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE ? "open" : "encrypted");
       }
     }
     if(s.startsWith("AT+CONNECT=")) {
