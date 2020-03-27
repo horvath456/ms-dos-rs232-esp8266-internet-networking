@@ -113,5 +113,10 @@ void loop() {
     }
   }
 
+  while(client.available()) {
+    String reply = client.readStringUntil('\r');
+    Serial.print(reply);
+  }
+
   delay(100);
 }

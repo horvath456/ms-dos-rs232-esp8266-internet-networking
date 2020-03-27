@@ -65,15 +65,16 @@ vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
 
 void ESP8266_Driver::connect_to_AP(std::string ssid, std::string password)
 {
-    string s = "AT+CONNECT=" + ssid + "," + password + "\n";
+    string s = "AT+CONNECT=\"" + ssid + "\",\"" + password + "\"\n";
     RS232::write(io_port, s);
 }
 
 void ESP8266_Driver::start_tls_connection(std::string ip, unsigned int port)
 {
-    char *x_str = new char[5];
+    RS232::write(io_port, "AT+INIT_TLS\n");
+    char *x_str = new char[6];
     x_str = itoa(port, x_str, 10); // base 10
-    string s = "AT+TLS_START=" + ip + ":" + string(x_str) + "\n";
+    string s = "AT+TLS_START=" + ip + "," + string(x_str) + "\n";
     RS232::write(io_port, s);
 }
 
