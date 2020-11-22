@@ -16,7 +16,7 @@ public:
     bool is_connected_to_AP();
     std::string get_ip();
     std::string get_mac();
-    AP_List_Entry get_connected_AP();
+    std::string get_connected_AP();
     std::vector<AP_List_Entry> get_available_APs();
     void connect_to_AP(const std::string &ssid, const std::string &password="");
     void init_tls();

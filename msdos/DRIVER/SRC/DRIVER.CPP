@@ -175,9 +175,8 @@ std::string ESP8266_Driver::get_mac()
     return ESP8266_Driver::read_string();
 }
 
-AP_List_Entry ESP8266_Driver::get_connected_AP()
+std::string ESP8266_Driver::get_connected_AP()
 {
     RS232::write(io_port, "AT+CONNECTED_AP\n");
-    AP_List_Entry ap;
-    return ap;
+    return ESP8266_Driver::read_string();
 }
