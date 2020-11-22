@@ -19,7 +19,8 @@ public:
     AP_List_Entry get_connected_AP();
     std::vector<AP_List_Entry> get_available_APs();
     void connect_to_AP(std::string ssid, std::string password);
-    void start_tls_connection(std::string ip, unsigned int port);
+    void start_tls_connection_to_ip(std::string ip, unsigned int port);
+    void start_tls_connection_to_hostname(std::string hostname, unsigned int port);
     void send_string(std::string s);
     std::string read_string();
     void close_tls_connection();

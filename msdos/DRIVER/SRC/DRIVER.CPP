@@ -42,6 +42,7 @@ bool ESP8266_Driver::test()
 void ESP8266_Driver::reset()
 {
     RS232::write(io_port, "AT+RESET\n");
+    bool success = RS232::read_string(io_port) == "OK\r\n";
 }
 
 vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
@@ -65,16 +66,28 @@ vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
 
 void ESP8266_Driver::connect_to_AP(std::string ssid, std::string password)
 {
-    string s = "AT+CONNECT=\"" + ssid + "\",\"" + password + "\"\n";
+    string s = "AT+CONNECT_TO_AP=\"" + ssid + "\",\"" + password + "\"\n";
+    RS232::write(io_port, s);
+    bool success = RS232::read_string(io_port) == "OK\r\n";
+}
+
+void ESP8266_Driver::start_tls_connection_to_ip(std::string ip, unsigned int port)
+{
+    RS232::write(io_port, "AT+INIT_TLS\n");
+    bool inittls_success = RS232::read_string(io_port) == "OK\r\n";
+    char *x_str = new char[6];
+    x_str = itoa(port, x_str, 10); // base 10
+    string s = "AT+TLS_START_IP=\"" + ip + "\",\"" + string(x_str) + "\"\n";
     RS232::write(io_port, s);
 }
 
-void ESP8266_Driver::start_tls_connection(std::string ip, unsigned int port)
+void ESP8266_Driver::start_tls_connection_to_hostname(std::string hostname, unsigned int port)
 {
     RS232::write(io_port, "AT+INIT_TLS\n");
+    bool inittls_success = RS232::read_string(io_port) == "OK\r\n";
     char *x_str = new char[6];
     x_str = itoa(port, x_str, 10); // base 10
-    string s = "AT+TLS_START=" + ip + "," + string(x_str) + "\n";
+    string s = "AT+TLS_START_HOSTNAME=\"" + hostname + "\",\"" + string(x_str) + "\"\n";
     RS232::write(io_port, s);
 }
 
@@ -100,6 +113,7 @@ string ESP8266_Driver::read_string()
 void ESP8266_Driver::close_tls_connection()
 {
     RS232::write(io_port, "AT+TLS_CLOSE\n");
+    bool success = RS232::read_string(io_port) == "OK\r\n";
 }
 
 bool ESP8266_Driver::is_connected_to_AP()
