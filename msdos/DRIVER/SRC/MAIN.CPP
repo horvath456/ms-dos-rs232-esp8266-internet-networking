@@ -22,11 +22,11 @@ int main()
 
 	esp8266.reset();
 	esp8266.get_available_APs();
-	esp8266.connect_to_AP("3Tube_2.4Ghz_6618", "9002263505");
-	esp8266.start_tls_connection("api.github.com", 443);
+	esp8266.connect_to_AP("WLAN", "123456789!");
+	esp8266.start_tls_connection("192.168.10.23", 8000);
 	esp8266.send_string("PING");
 
-	while (!esp8266.data_available())
+	while (true)
 	{
 		cout << esp8266.read_string().c_str() << endl;
 	}

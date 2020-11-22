@@ -8,11 +8,28 @@ const options = {
 
 const server = tls.createServer(options, (socket) => {
   console.log('server connected',
-              socket.authorized ? 'authorized' : 'unauthorized');
+    socket.authorized ? 'authorized' : 'unauthorized');
+
+  socket.on('data', function (data) {
+
+    console.log('Received: %s [it is %d bytes long]',
+      data.toString().replace(/(\n)/gm, ""),
+      data.length);
+
+      socket.write('Server got data!\n');
+
+  });
+
+  // Let us know when the transmission is over
+  socket.on('end', function () {
+
+    console.log('EOT (End Of Transmission)');
+
+  });
+
 
   socket.write('welcome!\n');
-  socket.setEncoding('utf8');
-  socket.pipe(socket);
+  socket.setEncoding('ascii');
 });
 
 server.listen(8000, () => {
