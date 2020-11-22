@@ -9,7 +9,7 @@
 class ESP8266_Driver
 {
 public:
-    ESP8266_Driver(unsigned int base_io_port);
+    ESP8266_Driver(unsigned char comport_num=0); // COM1 = 0, COM4 = 3
     bool test();
     void reset();
     bool data_available();
@@ -27,6 +27,9 @@ public:
 
 private:
     unsigned long io_port;
+    unsigned char intvect;
+    unsigned char pic_irq;
+    unsigned char pic_irq_mask;
 };
 
 #endif

@@ -8,7 +8,7 @@ using namespace std;
 
 int main()
 {
-	ESP8266_Driver esp8266(0x3F8);
+	ESP8266_Driver esp8266;
 
 	if (!esp8266.test())
 	{
@@ -23,8 +23,8 @@ int main()
 	esp8266.reset();
 	esp8266.get_available_APs();
 	esp8266.connect_to_AP("WLAN", "123456789!");
-	esp8266.start_tls_connection_to_ip("192.168.0.23", 8000);
-	esp8266.send_string("PING");
+	/*esp8266.start_tls_connection_to_ip("192.168.0.23", 8000);
+	esp8266.send_string("PING");*/
 
 	while (true)
 	{
