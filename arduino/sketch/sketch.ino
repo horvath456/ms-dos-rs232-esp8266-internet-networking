@@ -171,8 +171,8 @@ void loop() {
   
         client.setSession(&session);
         client.connect(bigbuf1, port);
-        if (!client.connected())  Serial.printf("*** Can't connect to %s:%d ***\n-------\n", bigbuf1, port);
-        else Serial.printf("Connected!\n-------\n");
+        if (!client.connected())  Serial.printf("*** Can't connect to %s:%d ***\n---\n", bigbuf1, port);
+        else Serial.printf("CONNECTED\n---\n");
       }
       else if (strncmp(readbuffer, "AT+TLS_START_IP=", 16) == 0) {
         bool startreadHostname = false;
@@ -237,8 +237,8 @@ void loop() {
   
         client.setSession(&session);
         client.connect(ip, port);
-        if (!client.connected())  Serial.printf("*** Can't connect to %d.%d.%d.%d:%d ***\n-------\n", ip_array[0], ip_array[1], ip_array[2], ip_array[3], port);
-        else Serial.printf("Connected!\n-------\n");
+        if (!client.connected())  Serial.printf("*** Can't connect to %d.%d.%d.%d:%d ***\n---\n", ip_array[0], ip_array[1], ip_array[2], ip_array[3], port);
+        else Serial.printf("CONNECTED\n---\n");
       }
       else if (strncmp(readbuffer, "AT+SEND=", 8) == 0) {
           size_t strlen_readbuffer = strlen(readbuffer);
@@ -266,7 +266,7 @@ void loop() {
         Serial.println("OK");
       }
       else {
-        Serial.println("UNSUPPORTED COMMAND");
+        Serial.println("*** UNSUPPORTED COMMAND ***");
       }
     }
   }
