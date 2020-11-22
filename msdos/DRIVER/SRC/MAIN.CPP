@@ -1,6 +1,7 @@
 #include <stdio>
 #include <dos.h>
 #include <iostream>
+#include <string>
 
 #include "driver.h"
 
@@ -36,17 +37,100 @@ int main()
 	}
 
 	esp8266.reset();
+	cout << "Reset ESP8266." << endl;
+
+	cout << "Searching for APs..." << endl;
 
 	vector<AP_List_Entry> APs = esp8266.get_available_APs();
 	for (unsigned int i = 0; i < APs.size(); i++)
 	{
-		cout << "ENTRY: " << APs[i].ssid.c_str() << endl;
+		cout << "(" << i + 1 << ") " << APs[i].ssid.c_str() << " ";
+		cout << ((APs[i].ecn == OPEN) ? "(open)" : "(encrypted)") << endl;
 	}
 
-	esp8266.connect_to_AP("WLAN", "123456789!");
-	esp8266.init_tls();
-	esp8266.start_tls_connection_to_ip("192.168.0.23", 8000);
-	esp8266.send_string("PING");
+	if (APs.size() == 0)
+	{
+		cout << "Could not find APs. Quitting application." << endl;
+		return 1;
+	}
+
+	unsigned int number;
+	do
+	{
+		cout << "Enter AP number to connect (1-" << APs.size() << "): " << flush;
+		cin >> number;
+
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			std::cin.ignore();
+		}
+	} while (number < 1 || number > APs.size());
+
+	AP_List_Entry access_point = APs[number - 1];
+
+	string passphrase;
+	if (access_point.ecn != OPEN)
+	{
+		cout << "Enter passphrase: " << flush;
+		{
+			char passphrase_cstring[64];
+			cin >> passphrase_cstring;
+			passphrase = passphrase_cstring;
+		}
+	}
+
+	cout << "Connecting to " << access_point.ssid.c_str() << " ..." << endl;
+	bool connected_to_AP = esp8266.connect_to_AP(access_point.ssid, passphrase);
+	if (!connected_to_AP)
+	{
+		cout << "Could not connect to AP." << endl;
+		return 1;
+	}
+	cout << "Connected to WIFI." << endl;
+
+	cout << "Init TLS ..." << endl;
+	bool initialized_tls = esp8266.init_tls();
+	if (!initialized_tls)
+	{
+		cout << "Could not initialize TLS." << endl;
+		return 1;
+	}
+	cout << "Initialized TLS." << endl;
+
+	string server_ip;
+	cout << "Enter server IP: " << flush;
+	{
+		char server_ip_cstring[64];
+		cin >> server_ip_cstring;
+		server_ip = server_ip_cstring;
+	}
+
+	unsigned int server_port;
+	cout << "Enter server port: " << flush;
+	cin >> server_port;
+
+	cout << "Connecting to " << server_ip.c_str() << ":" << server_port << " ..." << endl;
+	bool connected = esp8266.start_tls_connection(server_ip, server_port);
+	if (!connected)
+	{
+		cout << "Could not connect to server." << endl;
+		return 1;
+	}
+
+	string nickname;
+	cout << "Enter a nickname: " << flush;
+	{
+		char nickname_cstring[64];
+		cin >> nickname_cstring;
+		nickname = nickname_cstring;
+	}
+
+	string welcome_msg = "Hello, my name is ";
+	welcome_msg += nickname;
+	welcome_msg += "!";
+
+	esp8266.send_string(welcome_msg);
 
 	while (true)
 	{

@@ -6,32 +6,31 @@ const options = {
   cert: fs.readFileSync('server-cert.pem'),
 };
 
+let clients = [];
+
+function sendMessage(msg) {
+  clients.forEach(client => {
+    client.write(msg + '\n');
+  })
+  console.log(msg);
+}
+
 const server = tls.createServer(options, (socket) => {
-  console.log('server connected',
-    socket.authorized ? 'authorized' : 'unauthorized');
+  clients.push(socket);
 
-  socket.on('data', function (data) {
-
-    console.log('Received: %s [it is %d bytes long]',
-      data.toString().replace(/(\n)/gm, ""),
-      data.length);
-
-      socket.write('Server got data!\n');
-
+  socket.on('data', data => {
+    const dataString = data.toString().replace(/(\n)/gm, "");
+    sendMessage(dataString);
   });
 
-  // Let us know when the transmission is over
-  socket.on('end', function () {
-
-    console.log('EOT (End Of Transmission)');
-
+  socket.on('error', err => {
+    console.log('An error occured: ' + err.code);
   });
 
-
-  socket.write('welcome!\n');
+  sendMessage('New client connected.');
   socket.setEncoding('ascii');
 });
 
 server.listen(8000, () => {
-  console.log('server bound');
+  console.log('Server started\n');
 });

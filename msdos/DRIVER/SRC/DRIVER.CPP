@@ -51,6 +51,21 @@ bool wait_for_ok(unsigned int timeout_ms)
     }
 }
 
+bool is_ip(const std::string &s)
+{
+    vector<string> tokens = split(s, '.');
+    if (tokens.size() != 4)
+        return false;
+    for (int i = 0; i < tokens.size(); i++)
+    {
+        int x;
+        int sscanf_val = sscanf(s.c_str(), "%d", &x);
+        if (sscanf_val != 1)
+            return false;
+    }
+    return true;
+}
+
 ESP8266_Driver::ESP8266_Driver(unsigned char comport_num)
 {
     io_port = RS232::PORT_BASE_IO[comport_num];
@@ -72,13 +87,21 @@ void ESP8266_Driver::reset()
     wait_for_ok(1000);
 }
 
+void ESP8266_Driver::delay(unsigned int milliseconds)
+{
+    clock_t time_start = clock();
+    while (true)
+    {
+        if (clock() >= time_start + milliseconds)
+            return;
+    }
+}
+
 vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
 {
     RS232::write(io_port, "AT+LIST_AP\n");
 
-    RS232::set_timeout(5000);
-    string data = RS232::read_string();
-    RS232::reset_timeout();
+    string data = ESP8266_Driver::read_string(5000);
 
     vector<string> lines;
     lines = split(data, '\n');
@@ -103,33 +126,42 @@ vector<AP_List_Entry> ESP8266_Driver::get_available_APs()
     return list;
 }
 
-void ESP8266_Driver::connect_to_AP(const std::string &ssid, const std::string &password)
+bool ESP8266_Driver::connect_to_AP(const std::string &ssid, const std::string &password)
 {
     string s = "AT+CONNECT_TO_AP=\"" + ssid + "\",\"" + password + "\"\n";
     RS232::write(io_port, s);
-    wait_for_ok(10000);
+    bool success = wait_for_ok(10000);
+    ESP8266_Driver::delay(5000); // wait 5s
+    return success && ESP8266_Driver::is_connected_to_AP();
 }
 
-void ESP8266_Driver::init_tls()
+bool ESP8266_Driver::init_tls()
 {
     RS232::write(io_port, "AT+INIT_TLS\n");
-    wait_for_ok(15000);
+    return wait_for_ok(15000);
 }
 
-void ESP8266_Driver::start_tls_connection_to_ip(const std::string &ip, unsigned int port)
+bool ESP8266_Driver::start_tls_connection(const std::string &hostname, unsigned int port)
 {
     char *x_str = new char[6];
     x_str = itoa(port, x_str, 10); // base 10
-    string s = "AT+TLS_START_IP=\"" + ip + "\",\"" + string(x_str) + "\"\n";
-    RS232::write(io_port, s);
-}
 
-void ESP8266_Driver::start_tls_connection_to_hostname(const std::string &hostname, unsigned int port)
-{
-    char *x_str = new char[6];
-    x_str = itoa(port, x_str, 10); // base 10
-    string s = "AT+TLS_START_HOSTNAME=\"" + hostname + "\",\"" + string(x_str) + "\"\n";
+    string s;
+
+    if (is_ip(hostname))
+    {
+        s = "AT+TLS_START_IP=\"" + hostname + "\",\"" + string(x_str) + "\"\n";
+    }
+    else
+    {
+        s = "AT+TLS_START_HOSTNAME=\"" + hostname + "\",\"" + string(x_str) + "\"\n";
+    }
+
     RS232::write(io_port, s);
+
+    string data = ESP8266_Driver::read_string(15000);
+
+    return (strncmp(data.c_str(), "CONNECTED", 9) == 0);
 }
 
 void ESP8266_Driver::send_string(const std::string &str)
@@ -146,9 +178,27 @@ bool ESP8266_Driver::data_available()
     return RS232::is_available();
 }
 
-string ESP8266_Driver::read_string()
+std::string ESP8266_Driver::read_string()
 {
     return RS232::read_string();
+}
+
+std::string ESP8266_Driver::read_string(unsigned int timeout_ms)
+{
+    string s = "";
+
+    clock_t time_start = clock();
+    while (true)
+    {
+        if (RS232::is_available())
+        {
+            s = RS232::read_string();
+            return s;
+        }
+        if (clock() >= time_start + timeout_ms)
+            return s;
+    }
+    return s;
 }
 
 void ESP8266_Driver::close_tls_connection()
@@ -160,7 +210,7 @@ void ESP8266_Driver::close_tls_connection()
 bool ESP8266_Driver::is_connected_to_AP()
 {
     RS232::write(io_port, "AT+IS_CONNECTED_TO_AP\n");
-    return RS232::read_string() == "YES\n";
+    return RS232::read_string() == "YES\r\n";
 }
 
 std::string ESP8266_Driver::get_ip()
