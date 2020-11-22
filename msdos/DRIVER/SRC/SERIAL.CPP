@@ -183,8 +183,8 @@ void RS232::deinit(unsigned int port_base_io, unsigned char intvect, unsigned ch
     outp(port_base_io + 1, 0x00); // Disable all interrupts
 
     outp(0x21, (inp(0x21) | irqmask)); /* MASK IRQ using PIC */
-                                               /* COM1 und COM3 (IRQ4) - 0x10  */
-                                               /* COM2 unf COM4 (IRQ3) - 0x08  */
+                                       /* COM1 und COM3 (IRQ4) - 0x10  */
+                                       /* COM2 unf COM4 (IRQ3) - 0x08  */
 
     deinit_interrupt(intvect);
 }

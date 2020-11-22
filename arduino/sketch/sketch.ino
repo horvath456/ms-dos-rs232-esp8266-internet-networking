@@ -45,7 +45,7 @@ void loop() {
   
         for (int i = 0; i < networksFound; i++)
         {
-          Serial.printf("%d,\"%s\",%d,%d,\"%s\"\n", i + 1, WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE ? "open" : "encrypted");
+          Serial.printf("%d,%s,%d,%d,%d\n", i + 1, WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i));
         }
   
         if (networksFound == 0) {
@@ -85,6 +85,9 @@ void loop() {
         smallbuf2[smallbuf2_cnt] = 0; // null-terminate c-string
   
         WiFi.begin(smallbuf1, smallbuf2);
+
+        delay(2000); // add a delay
+        
         Serial.println("OK");
       }
       else if (strcmp(readbuffer, "AT+DISCONNECT") == 0) {
@@ -124,6 +127,8 @@ void loop() {
         
         struct tm timeinfo;
         gmtime_r(&now, &timeinfo);
+
+        delay(2000); // add a delay
         
         #ifdef DEBUG
         Serial.println("");
@@ -168,9 +173,14 @@ void loop() {
         smallbuf1[smallbuf1_cnt] = 0; // null-terminate c-string
   
         uint16_t port = atoi(smallbuf1);
+
+        delay(2000); // add a delay
   
         client.setSession(&session);
         client.connect(bigbuf1, port);
+
+        delay(1000); // add a delay
+        
         if (!client.connected())  Serial.printf("*** Can't connect to %s:%d ***\n---\n", bigbuf1, port);
         else Serial.printf("CONNECTED\n---\n");
       }
@@ -234,9 +244,14 @@ void loop() {
   
         IPAddress ip(ip_array[0], ip_array[1], ip_array[2], ip_array[3]);
         uint16_t port = atoi(smallbuf2);
+
+        delay(2000); // add a delay
   
         client.setSession(&session);
         client.connect(ip, port);
+
+        delay(1000); // add a delay
+        
         if (!client.connected())  Serial.printf("*** Can't connect to %d.%d.%d.%d:%d ***\n---\n", ip_array[0], ip_array[1], ip_array[2], ip_array[3], port);
         else Serial.printf("CONNECTED\n---\n");
       }
