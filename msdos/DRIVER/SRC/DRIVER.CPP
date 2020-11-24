@@ -138,7 +138,7 @@ bool ESP8266_Driver::connect_to_AP(const std::string &ssid, const std::string &p
 bool ESP8266_Driver::init_tls()
 {
     RS232::write(io_port, "AT+INIT_TLS\n");
-    return wait_for_ok(15000);
+    return wait_for_ok(25000); // wait 25s for OK
 }
 
 bool ESP8266_Driver::start_tls_connection(const std::string &hostname, unsigned int port)
