@@ -32,5 +32,5 @@ const server = tls.createServer(options, (socket) => {
 });
 
 server.listen(8000, () => {
-  console.log('Server started\n');
+  console.log('(Chat) server started on port 8000\n');
 });
