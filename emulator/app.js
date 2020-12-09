@@ -108,8 +108,7 @@ function handleData(socket, data) {
 }
 
 
-console.log('Listening on 127.0.0.1:7000\n');
-
+console.log('ESP8266 Emulator is starting ...');
 
 const server = net.createServer(socket => {
     console.log('client connected.');
@@ -126,3 +125,5 @@ const server = net.createServer(socket => {
 });
 
 server.listen(7000, '127.0.0.1');
+
+console.log('Listening on 127.0.0.1:7000\n');
