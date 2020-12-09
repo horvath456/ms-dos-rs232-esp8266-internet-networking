@@ -112,6 +112,8 @@ console.log('Listening on 127.0.0.1:7000\n');
 
 
 const server = net.createServer(socket => {
+    console.log('client connected.');
+
     socket.setEncoding('ascii');
 
     socket.on('data', (data) => {
@@ -119,7 +121,7 @@ const server = net.createServer(socket => {
     });
 
     socket.on('end', () => {
-        console.log('Closed.');
+        console.log('client disconnected.');
     });
 });
 
