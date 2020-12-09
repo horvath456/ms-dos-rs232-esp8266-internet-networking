@@ -1,5 +1,7 @@
 # MS-DOS RS232 ESP8266 Driver
 
+This is the MS-DOS driver for the ESP8266. It communicates over a custom simple RS232 library with the device. 
+
 
 ## Prerequisites to compile
 
@@ -28,4 +30,8 @@ To compile the project, run COMPILE.BAT in the DRIVER directory.
 
 
 ## Run
-To run the project, execute MAIN.EXE in the DRIVER directory.
+To run the project, execute ESP8266.EXE in the DRIVER directory.
+
+
+## Use it in your own project
+Use the header files and the library file in the DIST directory to include the driver in your own projects.
