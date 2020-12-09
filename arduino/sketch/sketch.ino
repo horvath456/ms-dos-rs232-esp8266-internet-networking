@@ -30,6 +30,9 @@ void loop() {
       if (strcmp(readbuffer, "AT") == 0) {
         Serial.println("OK");
       }
+      else if (strcmp(readbuffer, "AT+INFO") == 0) {
+        Serial.println("REAL_ESP8266");
+      }
       else if (strcmp(readbuffer, "AT+RESET") == 0) {
         WiFi.mode(WIFI_STA);
         WiFi.disconnect();
