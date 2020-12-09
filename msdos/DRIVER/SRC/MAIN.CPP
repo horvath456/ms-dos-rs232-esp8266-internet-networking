@@ -39,55 +39,64 @@ int main()
 	esp8266.reset();
 	cout << "Reset ESP8266." << endl;
 
-	cout << "Searching for APs..." << endl;
-
-	vector<AP_List_Entry> APs = esp8266.get_available_APs();
-	for (unsigned int i = 0; i < APs.size(); i++)
+	cout << "Getting device info..." << endl;
+	esp8266.retrieve_device_info();
+	if (esp8266.is_emulated_esp8266())
 	{
-		cout << "(" << i + 1 << ") " << APs[i].ssid.c_str() << " ";
-		cout << ((APs[i].ecn == OPEN) ? "(open)" : "(encrypted)") << endl;
+		cout << "The device is an emulated device." << endl;
 	}
-
-	if (APs.size() == 0)
+	else
 	{
-		cout << "Could not find APs. Quitting application." << endl;
-		return 1;
-	}
+		cout << "The device is a real esp8266 device." << endl;
 
-	unsigned int number;
-	do
-	{
-		cout << "Enter AP number to connect (1-" << APs.size() << "): " << flush;
-		cin >> number;
-
-		if (std::cin.fail())
+		vector<AP_List_Entry> APs = esp8266.get_available_APs();
+		for (unsigned int i = 0; i < APs.size(); i++)
 		{
-			std::cin.clear();
-			std::cin.ignore();
+			cout << "(" << i + 1 << ") " << APs[i].ssid.c_str() << " ";
+			cout << ((APs[i].ecn == OPEN) ? "(open)" : "(encrypted)") << endl;
 		}
-	} while (number < 1 || number > APs.size());
 
-	AP_List_Entry access_point = APs[number - 1];
-
-	string passphrase;
-	if (access_point.ecn != OPEN)
-	{
-		cout << "Enter passphrase: " << flush;
+		if (APs.size() == 0)
 		{
-			char passphrase_cstring[64];
-			cin >> passphrase_cstring;
-			passphrase = passphrase_cstring;
+			cout << "Could not find APs. Quitting application." << endl;
+			return 1;
 		}
-	}
 
-	cout << "Connecting to " << access_point.ssid.c_str() << " ..." << endl;
-	bool connected_to_AP = esp8266.connect_to_AP(access_point.ssid, passphrase);
-	if (!connected_to_AP)
-	{
-		cout << "Could not connect to AP." << endl;
-		return 1;
+		unsigned int number;
+		do
+		{
+			cout << "Enter AP number to connect (1-" << APs.size() << "): " << flush;
+			cin >> number;
+
+			if (std::cin.fail())
+			{
+				std::cin.clear();
+				std::cin.ignore();
+			}
+		} while (number < 1 || number > APs.size());
+
+		AP_List_Entry access_point = APs[number - 1];
+
+		string passphrase;
+		if (access_point.ecn != OPEN)
+		{
+			cout << "Enter passphrase: " << flush;
+			{
+				char passphrase_cstring[64];
+				cin >> passphrase_cstring;
+				passphrase = passphrase_cstring;
+			}
+		}
+
+		cout << "Connecting to " << access_point.ssid.c_str() << " ..." << endl;
+		bool connected_to_AP = esp8266.connect_to_AP(access_point.ssid, passphrase);
+		if (!connected_to_AP)
+		{
+			cout << "Could not connect to AP." << endl;
+			return 1;
+		}
+		cout << "Connected to WIFI." << endl;
 	}
-	cout << "Connected to WIFI." << endl;
 
 	cout << "Init TLS ..." << endl;
 	bool initialized_tls = esp8266.init_tls();

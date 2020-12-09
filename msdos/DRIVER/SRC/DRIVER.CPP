@@ -73,12 +73,29 @@ ESP8266_Driver::ESP8266_Driver(unsigned char comport_num)
     pic_irq = RS232::PIC_IRQ[comport_num];
     pic_irq_mask = RS232::PIC_IRQ_MASK[comport_num];
     RS232::setup(io_port, intvect, pic_irq, 115200);
+
+    device_info = "";
+}
+
+bool ESP8266_Driver::is_emulated_esp8266()
+{
+    return ESP8266_Driver::retrieve_device_info() == "ESP8266_EMULATOR_FOR_DOSBOX\r\n";
 }
 
 bool ESP8266_Driver::test()
 {
     RS232::write(io_port, "AT\n");
     return RS232::read_string() == "OK\r\n";
+}
+
+std::string ESP8266_Driver::retrieve_device_info()
+{
+    if (device_info == NULL || device_info == "")
+    {
+        RS232::write(io_port, "AT+INFO\n");
+        device_info = RS232::read_string();
+    }
+    return device_info; // contains \r\n (!)
 }
 
 void ESP8266_Driver::reset()
