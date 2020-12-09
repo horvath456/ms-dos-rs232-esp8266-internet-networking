@@ -1,2 +1,3 @@
 nodejs/*.pem
 .vscode
+emulator/node_modules

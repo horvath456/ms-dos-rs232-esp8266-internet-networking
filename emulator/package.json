@@ -1,0 +1,26 @@
+{
+  "name": "emulator",
+  "version": "1.0.0",
+  "description": "Emulates the ESP8266 RS232 device via a local TCP server",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/horvath456/ms-dos-rs232-esp8266-internet-networking.git"
+  },
+  "author": "Andreas Horvath",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/horvath456/ms-dos-rs232-esp8266-internet-networking/issues"
+  },
+  "homepage": "https://github.com/horvath456/ms-dos-rs232-esp8266-internet-networking#readme",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "getmac": "^5.17.0",
+    "ip": "^1.1.5",
+    "net": "^1.0.2",
+    "tls": "0.0.1"
+  }
+}
