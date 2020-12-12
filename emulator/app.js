@@ -3,10 +3,38 @@ const fs = require('fs');
 const net = require('net');
 const getMAC = require('getmac').default;
 const ip = require('ip');
+const ping = require('ping');
 
 
 let openedTLSSocket = null;
 let numberOfBytesToWriteOut = 0;
+
+
+/**
+ * pings a host
+ * @param {String} host 
+ * @returns {Promise} true for pingable
+ */
+function pingHost(host) {
+    return new Promise((resolve, reject) => {
+        ping.sys.probe(host, function (isAlive) {
+            resolve(isAlive);
+        });
+    });
+}
+
+
+/**
+ * pings a host and measures round trip time
+ * @param {String} host 
+ * @returns {Number|Boolean} RTT in ms or false if not successful
+ */
+async function pingHostWithRTT(host) {
+    const before = Date.now();
+    const res = await pingHost(host);
+    const RTT = Date.now() - before;
+    return res ? RTT : false;
+}
 
 
 /**
@@ -48,7 +76,7 @@ function startTLSConnection(host, port, connectCallback, dataCallback, errorCall
  * @param {Object} socket 
  * @param {String} data 
  */
-function handleData(socket, data) {
+async function handleData(socket, data) {
     if (numberOfBytesToWriteOut > 0) { // just assume data comes at max in 2 parts
         const numBytes = data.length > numberOfBytesToWriteOut ? numberOfBytesToWriteOut : data.length;
         const str = data.substr(0, numBytes);
@@ -70,6 +98,19 @@ function handleData(socket, data) {
         socket.write(ip.address() + '\r\n');
     } else if (data === 'AT+INIT_TLS\n') {
         socket.write('OK\r\n');
+    } else if (data.startsWith('AT+PING')) {
+        const connStr = data.split('=')[1];
+        const hostPart = connStr.split(',')[0];
+        const host = hostPart.replace(/"/g, '').replace(/\n/g, '').replace(/\r/g, '');
+        console.log('Pinging: ' + host + ' ...');
+        const pingRes = await pingHostWithRTT(host);
+        if (pingRes) {
+            socket.write('REACHED HOST: ' + pingRes + ' ms\r\n');
+            console.log('REACHED HOST: ' + pingRes + ' ms\r\n');
+        } else {
+            socket.write('HOST UNREACHABLE\r\n');
+            console.log('HOST UNREACHABLE\r\n');
+        }
     } else if (data.startsWith('AT+TLS_START_')) {
         const connStr = data.split('=')[1];
         const hostPart = connStr.split(',')[0];
