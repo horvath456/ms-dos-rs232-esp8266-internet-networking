@@ -6,7 +6,7 @@ const ip = require('ip');
 const ping = require('ping');
 
 
-let openedTLSSocket = null;
+let openedTLSorTCPSocket = null;
 let numberOfBytesToWriteOut = 0;
 
 
@@ -41,7 +41,9 @@ async function pingHostWithRTT(host) {
  * opens a new TLS connection
  * @param {String} host 
  * @param {Number} port
- * @param {Function} dataCallback 
+ * @param {Function} connectCallback
+ * @param {Function} dataCallback
+ * @param {Function} errorCallback
  * @returns {Object} socket
  */
 function startTLSConnection(host, port, connectCallback, dataCallback, errorCallback) {
@@ -49,22 +51,53 @@ function startTLSConnection(host, port, connectCallback, dataCallback, errorCall
         rejectUnauthorized: false
     };
 
-    const socket = tls.connect(port, host, options, () => {
+    const socket = tls.connect(port, host, options, async () => {
         console.log('client connected',
             socket.authorized ? 'authorized' : 'unauthorized');
-        connectCallback();
+        try { await connectCallback(); } catch (e) { }
     });
 
     socket.setEncoding('ascii');
 
-    socket.on('data', data => {
+    socket.on('data', async data => {
         console.log(data);
-        dataCallback(data);
+        try { await dataCallback(data); } catch (e) { }
     });
 
-    socket.on('error', err => {
+    socket.on('error', async err => {
         console.log(err);
-        errorCallback(err);
+        try { await errorCallback(err); } catch (e) { }
+    });
+
+    return socket;
+}
+
+
+/**
+ * opens a new TCP connection
+ * @param {String} host 
+ * @param {Number} port
+ * @param {Function} connectCallback 
+ * @param {Function} dataCallback 
+ * @param {Function} errorCallback 
+ * @returns {Object} socket
+ */
+function startTCPConnection(host, port, connectCallback, dataCallback, errorCallback) {
+    const socket = new net.Socket();
+
+    socket.connect(port, host, async () => {
+        console.log('TCP client connected to specified host');
+        try { await connectCallback(); } catch (e) { }
+    });
+
+    socket.on('data', async data => {
+        console.log(data);
+        try { await dataCallback(data); } catch (e) { }
+    });
+
+    socket.on('error', async err => {
+        console.log(err);
+        try { await errorCallback(err); } catch (e) { }
     });
 
     return socket;
@@ -82,7 +115,7 @@ async function handleData(socket, data) {
         const str = data.substr(0, numBytes);
         data = data.substr(numBytes);
         numberOfBytesToWriteOut = 0;
-        openedTLSSocket.write(str);
+        openedTLSorTCPSocket.write(str);
         return; // consider data handled ;)
     }
 
@@ -106,10 +139,10 @@ async function handleData(socket, data) {
         const pingRes = await pingHostWithRTT(host);
         if (pingRes) {
             socket.write('REACHED HOST: ' + pingRes + ' ms\r\n');
-            console.log('REACHED HOST: ' + pingRes + ' ms\r\n');
+            console.log('REACHED HOST: ' + pingRes + ' ms');
         } else {
             socket.write('HOST UNREACHABLE\r\n');
-            console.log('HOST UNREACHABLE\r\n');
+            console.log('HOST UNREACHABLE');
         }
     } else if (data.startsWith('AT+TLS_START_')) {
         const connStr = data.split('=')[1];
@@ -120,10 +153,29 @@ async function handleData(socket, data) {
 
         console.log('starting TLS connection: ' + host + ':' + port + ' ...');
 
-        openedTLSSocket = startTLSConnection(host, port, () => {
+        openedTLSorTCPSocket = startTLSConnection(host, port, () => {
             socket.write('CONNECTED\n---\n');
         }, data => {
             // write data from tlssocket to tcpsocket
+            socket.write(data);
+        }, err => {
+            if (err.syscall === 'connect') {
+                socket.write(`*** Can't connect to ${host}:${port} ***\n---\n`);
+            }
+        });
+    } else if (data.startsWith('AT+TCP_START_')) {
+        const connStr = data.split('=')[1];
+        const hostPart = connStr.split(',')[0];
+        const portPart = connStr.split(',')[1];
+        const host = hostPart.replace(/"/g, '');
+        const port = parseInt(portPart.replace(/"/g, ''));
+
+        console.log('starting TCP connection: ' + host + ':' + port + ' ...');
+
+        openedTLSorTCPSocket = startTCPConnection(host, port, () => {
+            socket.write('CONNECTED\n---\n');
+        }, data => {
+            // write data from this tcpsocket to tcpsocket
             socket.write(data);
         }, err => {
             if (err.syscall === 'connect') {
@@ -135,12 +187,16 @@ async function handleData(socket, data) {
         const otherData = data.split('\n').slice(1).join('\n');
         const numberOfBytesToWrite = parseInt(firstLine.split('=')[1]);
         const numberOfWrittenBytes = otherData.length;
-        openedTLSSocket.write(otherData);
+        openedTLSorTCPSocket.write(otherData);
         numberOfBytesToWriteOut = numberOfBytesToWrite - numberOfWrittenBytes;
-    } else if (data === 'AT+TLS_CLOSE\n') {
-        if (openedTLSSocket) {
-            openedTLSSocket.close();
-            openedTLSSocket = null;
+    } else if (data === 'AT+TLS_CLOSE\n' || data === 'AT+TCP_CLOSE\n') {
+        if (openedTLSorTCPSocket) {
+            try {
+                openedTLSorTCPSocket.close();
+            } catch (e) {
+                openedTLSorTCPSocket.end();
+            }
+            openedTLSorTCPSocket = null;
         }
         socket.write('OK\r\n');
     } else {
@@ -156,8 +212,8 @@ const server = net.createServer(socket => {
 
     socket.setEncoding('ascii');
 
-    socket.on('data', (data) => {
-        handleData(socket, data);
+    socket.on('data', async data => {
+        try { await handleData(socket, data); } catch (e) { }
     });
 
     socket.on('end', () => {
